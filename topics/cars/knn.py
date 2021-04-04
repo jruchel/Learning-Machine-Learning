@@ -46,7 +46,7 @@ def fit_neighbours(x_train, y_train, x_test, y_test):
     return best_neighbours, best_score
 
 
-data = pd.read_csv('data/cars/car.data')
+data = pd.read_csv('topics/cars/car.topics')
 
 data = encodeLabels(data)
 
