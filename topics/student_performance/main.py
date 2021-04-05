@@ -2,7 +2,7 @@ import sklearn
 from sklearn.linear_model import LinearRegression
 import numpy
 import pandas
-import topics.utils as utils
+import topics.linear_regression as utils
 
 best = 0
 
