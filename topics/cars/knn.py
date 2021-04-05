@@ -1,13 +1,8 @@
-import tensorflow as tf
-import keras as kr
 import sklearn
 import pandas as pd
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.utils import shuffle
-import matplotlib.pylab as plot
-from matplotlib import style
-from sklearn import linear_model, preprocessing
+from sklearn import preprocessing
 from termcolor import colored
 
 
@@ -74,4 +69,3 @@ for x in range(len(predicted)):
         color = 'red'
     print(colored("Predicted: {}, Data: {}, Actual: {}".format(prediction, data, actual), color))
 print("Accuracy: ", accuracy)
-
