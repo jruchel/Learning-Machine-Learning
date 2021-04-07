@@ -23,7 +23,7 @@ def train(file, separator, predicting_attribute, model):
     x = numpy.array(data.drop([predicting_attribute], 1))
     y = numpy.array(data[predicting_attribute])
 
-    x_train, x_test, y_train, y_test = sklearn.model_selection.train_test_split(x, y, test_size=0.9)
+    x_train, x_test, y_train, y_test = sklearn.model_selection.train_test_split(x, y, test_size=0.2)
 
     model.fit(x_train, y_train)
     accuracy = model.score(x_test, y_test)
