@@ -19,6 +19,13 @@ cors = CORS(api)
 api.config['CORS_HEADERS'] = 'Content-Type'
 
 
+@api.route('/algorithms', methods=['GET'])
+@cross_origin()
+def algorithms():
+    algos = ['linear-regression', 'some-algorithm']
+    return json.dumps(algos)
+
+
 @api.route('/algorithms/linear-regression', methods=['GET', 'POST'])
 @cross_origin()
 def linear_regression():
