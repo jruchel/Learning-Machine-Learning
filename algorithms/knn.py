@@ -28,7 +28,10 @@ def createTestTrainGroups(x, y, test_size):
     return sklearn.model_selection.train_test_split(x, y, test_size=test_size)
 
 
-def fit_neighbours(x_train, y_train, x_test, y_test):
+def fit_neighbours(data, predict):
+    x = np.array(data.drop([predict], 1))
+    y = np.array(data[predict])
+    x_train, x_test, y_train, y_test = sklearn.model_selection.train_test_split(x, y, test_size=0.1)
     best_score = 0
     best_neighbours = 0
     for i in range(1, 100):
@@ -41,7 +44,7 @@ def fit_neighbours(x_train, y_train, x_test, y_test):
     return best_neighbours, best_score
 
 
-data = pd.read_csv('topics/cars/car.topics')
+data = pd.read_csv('C:\\Users\\admin\Documents\\Learning-Machine-Learning\\data\\car.csv')
 
 data = encodeLabels(data)
 

@@ -1,18 +1,8 @@
 from flask import Flask, json, request
 from flask_cors import CORS, cross_origin
 from sklearn.linear_model import LinearRegression
-from topics.linear_regression import train
-import traceback
-import logging
-import api
-
-
-class LinearRegressionTrainingResult:
-    def __init__(self, accuracy, intercept, coefficients):
-        self.accuracy = accuracy
-        self.intercept = intercept
-        self.coefficients = coefficients
-
+from algorithms.Model import Model
+from sklearn.neighbors import KNeighborsClassifier
 
 api = Flask(__name__)
 cors = CORS(api)
@@ -22,8 +12,24 @@ api.config['CORS_HEADERS'] = 'Content-Type'
 @api.route('/algorithms', methods=['GET'])
 @cross_origin()
 def algorithms():
-    algos = ['linear-regression', 'some-algorithm']
+    algos = ['linear-regression', 'k-nearest-neighbours']
     return json.dumps(algos)
+
+
+@api.route('/algorithms/k-nearest-neighbours', methods=['GET', 'POST'])
+@cross_origin()
+def k_nearest_neighbours():
+    try:
+        arguments = request.args
+        separator = arguments.get('separator')
+        predicting = arguments.get('predicting')
+        file = request.files['data']
+        neighbours = arguments.get('neighbours')
+        knn = Model(KNeighborsClassifier(n_neighbors=int(neighbours)))
+        accuracy = knn.train(file, separator, predicting)
+        return json.dumps({"accuracy": accuracy})
+    except Exception as error:
+        return str(error)
 
 
 @api.route('/algorithms/linear-regression', methods=['GET', 'POST'])
@@ -34,12 +40,30 @@ def linear_regression():
         separator = arguments.get('separator')
         predicting = arguments.get('predicting')
         file = request.files['data']
-        model, accuracy = train(file, separator, predicting, LinearRegression())
-        intercept = model.intercept_
-        coefficients = model.coef_
-        return json.dumps(LinearRegressionTrainingResult(accuracy, intercept, coefficients.tolist()).__dict__)
+        regression = Model(LinearRegression())
+        accuracy = regression.train(file, separator, predicting)
+        intercept = regression.model.intercept_
+        coefficients = regression.model.coef_
+        return json.dumps({
+            "accuracy": accuracy,
+            "intercept": intercept,
+            "coefficients": coefficients.tolist()
+        })
     except Exception as error:
         return str(error)
+
+
+def fit_neighbours(x_train, y_train, x_test, y_test):
+    best_score = 0
+    best_neighbours = 0
+    for i in range(1, 100):
+        model = KNeighborsClassifier(n_neighbors=i)
+        model.fit(x_train, y_train)
+        accuracy = model.score(x_test, y_test)
+        if accuracy > best_score:
+            best_score = accuracy
+            best_neighbours = i
+    return best_neighbours, best_score
 
 
 if __name__ == "__main__":
