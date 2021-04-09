@@ -3,6 +3,7 @@ from flask_cors import CORS, cross_origin
 from sklearn.linear_model import LinearRegression
 from algorithms.Model import Model
 from sklearn.neighbors import KNeighborsClassifier
+import base64
 
 api = Flask(__name__)
 cors = CORS(api)
@@ -39,18 +40,47 @@ def linear_regression():
         arguments = request.args
         separator = arguments.get('separator')
         predicting = arguments.get('predicting')
+        save = ''
+        if arguments.get('save') == 'true':
+            save = True
+        else:
+            save = False
+        savename = ''
+        if save is True:
+            savename = "{}-{}".format(arguments.get('savename'), arguments.get('usersecret'))
+
         file = request.files['data']
         regression = Model(LinearRegression())
         accuracy = regression.train(file, separator, predicting)
         intercept = regression.model.intercept_
         coefficients = regression.model.coef_
-        return json.dumps({
-            "accuracy": accuracy,
-            "intercept": intercept,
-            "coefficients": coefficients.tolist()
-        })
+        if save:
+            regression.save(savename)
+            return json.dumps({
+                "accuracy": accuracy,
+                "intercept": intercept,
+                "coefficients": coefficients.tolist(),
+                "file": str(base64.b64encode(open("{}.pickle".format(savename), 'rb').read()))
+            })
+        else:
+            return json.dumps({
+                "accuracy": accuracy,
+                "intercept": intercept,
+                "coefficients": coefficients.tolist()})
     except Exception as error:
         return str(error)
+
+
+@api.route('/read', methods=['POST'])
+@cross_origin()
+def read_from_database():
+    return ""
+
+
+@api.route('/save', methods=['POST'])
+@cross_origin()
+def save_to_database():
+    return ""
 
 
 def fit_neighbours(x_train, y_train, x_test, y_test):

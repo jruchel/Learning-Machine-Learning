@@ -54,9 +54,8 @@ x, y = splitData(data, predict)
 
 x_train, x_test, y_train, y_test = createTestTrainGroups(x, y, 0.1)
 
-neighbours_count = fit_neighbours(x_train, y_train, x_test, y_test)[0]
 
-model = KNeighborsClassifier(n_neighbors=neighbours_count)
+model = KNeighborsClassifier(n_neighbors=5)
 model.fit(x_train, y_train)
 accuracy = model.score(x_test, y_test)
 

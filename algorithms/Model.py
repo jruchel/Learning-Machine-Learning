@@ -61,7 +61,7 @@ class Model:
             pickle.dump(self.model, dump_file)
 
     def load(self, filename):
-        pickle_in = open(filename, 'rb')
+        pickle_in = open("{}.pickle".format(filename), 'rb')
         return pickle.load(pickle_in)
 
     def trimColumns(self, data, args):
