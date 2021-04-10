@@ -3,11 +3,20 @@ from flask_cors import CORS, cross_origin
 from sklearn.linear_model import LinearRegression
 from algorithms.Model import Model
 from sklearn.neighbors import KNeighborsClassifier
-import base64
+import os
 
 api = Flask(__name__)
 cors = CORS(api)
 api.config['CORS_HEADERS'] = 'Content-Type'
+
+
+@api.after_request
+def cleanup(response):
+    files = [f for f in os.listdir('.') if os.path.isfile(f)]
+    for f in files:
+        if f.endswith(".pickle"):
+            os.remove(f)
+    return response
 
 
 @api.route('/algorithms', methods=['GET'])
@@ -56,11 +65,12 @@ def linear_regression():
         coefficients = regression.model.coef_
         if save:
             regression.save(savename)
+            file_data = open("{}.pickle".format(savename), "rb").read()
             return json.dumps({
                 "accuracy": accuracy,
                 "intercept": intercept,
                 "coefficients": coefficients.tolist(),
-                "file": str(base64.b64encode(open("{}.pickle".format(savename), 'rb').read()))
+                "file": str(file_data)
             })
         else:
             return json.dumps({
@@ -99,3 +109,5 @@ def fit_neighbours(x_train, y_train, x_test, y_test):
 if __name__ == "__main__":
     api.run(host='0.0.0.0')
     input("Press enter to exit")
+
+# TODO try zipping the file and sending it that way, maybe encoding will work
