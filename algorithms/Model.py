@@ -33,7 +33,9 @@ class Model:
 
         return DataFrame(self.columnsToRowsList(columns), columns=data.columns)
 
-    def predict(self, predict_data):
+    def predict(self, predict_data, separator, predicting):
+        pandas.read_csv(predict_data, sep=separator)
+        predict_data = predict_data.drop([predicting], 1)
         predictions = self.model.predict(predict_data)
         results = []
 
@@ -69,5 +71,6 @@ class Model:
         for arg in args:
             data_copy = data_copy.drop([arg], 1)
         return data_copy
+
     def get_model(self):
         return self.model
