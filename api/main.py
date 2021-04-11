@@ -6,6 +6,8 @@ from sklearn.neighbors import KNeighborsClassifier
 import json
 import os
 import pickle
+import base64
+import pandas as pd
 
 api = Flask(__name__)
 cors = CORS(api)
@@ -25,18 +27,17 @@ def cleanup(response):
 @cross_origin()
 def predict_linear_regression():
     try:
-        model_file_bytes = request.args['modelfile']
-        model_file_bytes = json.loads(model_file_bytes)
+        model_file_bytes = request.form['modelfile']
+        model_file_bytes = model_file_bytes.replace("\\\\", "\\")
+        model_file_bytes = base64.b64decode(model_file_bytes + '===')
         data = request.files['data']
         separator = request.args['separator']
         predicting = request.args['predicting']
         model_file = open("model.pickle", "wb")
-        model_file.write((''.join(chr(i) for i in model_file_bytes)).encode('charmap'))
+        model_file.write(model_file_bytes)
         model_file.close()
         model = Model(pickle.load(open("model.pickle", "rb")))
-        data = model.encodeLabels(data)
         return json.dumps(model.predict(data, separator, predicting))
-
     except Exception as error:
         return str(error)
 
@@ -92,13 +93,14 @@ def linear_regression():
                 "accuracy": accuracy,
                 "intercept": intercept,
                 "coefficients": coefficients.tolist(),
-                "file": str(file_data)
+                "file": str(base64.b64encode(file_data))
             })
         else:
             return json.dumps({
                 "accuracy": accuracy,
                 "intercept": intercept,
-                "coefficients": coefficients.tolist()})
+                "coefficients": coefficients.tolist(),
+                "file": None})
     except Exception as error:
         return str(error)
 

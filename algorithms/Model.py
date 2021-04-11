@@ -34,13 +34,14 @@ class Model:
         return DataFrame(self.columnsToRowsList(columns), columns=data.columns)
 
     def predict(self, predict_data, separator, predicting):
-        pandas.read_csv(predict_data, sep=separator)
+        predict_data = pandas.read_csv(predict_data, sep=separator)
+        predict_data = self.encodeLabels(predict_data)
         predict_data = predict_data.drop([predicting], 1)
         predictions = self.model.predict(predict_data)
         results = []
 
         for x in range(len(predictions)):
-            results.append((predictions[x], predict_data[x]))
+            results.append((predictions[x], predict_data.iloc[x].to_dict()))
         return results
 
     def train(self, file, separator, predicting_attribute):
