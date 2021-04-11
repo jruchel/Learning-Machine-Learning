@@ -46,7 +46,7 @@ def predict_linear_regression():
 @cross_origin()
 def algorithms():
     algos = ['linear-regression', 'k-nearest-neighbours']
-    return json.dumps(algos)
+    return create_response(algos)
 
 
 @api.route('/algorithms/k-nearest-neighbours', methods=['POST'])
@@ -89,25 +89,21 @@ def linear_regression():
         if save:
             regression.save(savename)
             file_data = open("{}.pickle".format(savename), "rb").read()
-            response_data = json.dumps({
+            response_data = {
                 "accuracy": accuracy,
                 "intercept": intercept,
                 "coefficients": coefficients.tolist(),
                 "file": str(base64.b64encode(file_data)),
                 "predicted": predicting
-            })
+            }
         else:
-            response_data = json.dumps({
+            response_data = {
                 "accuracy": accuracy,
                 "intercept": intercept,
                 "coefficients": coefficients.tolist(),
                 "file": None,
-                "predicted": predicting})
-        return api.response_class(
-            response=response_data,
-            status=200,
-            mimetype='application/json'
-        )
+                "predicted": predicting}
+        return create_response(response_data)
     except Exception as error:
         return str(error)
 
@@ -122,6 +118,10 @@ def read_from_database():
 @cross_origin()
 def save_to_database():
     return ""
+
+
+def create_response(data):
+    return api.response_class(response=json.dumps(data), status=200, mimetype='application/json')
 
 
 def fit_neighbours(x_train, y_train, x_test, y_test):
@@ -141,4 +141,4 @@ if __name__ == "__main__":
     api.run(host='0.0.0.0')
     input("Press enter to exit")
 
-#TODO make all endpoints return api.response and add a function for creating those responses so it doesnt have to by typed each time
+# TODO make all endpoints return api.response
