@@ -81,7 +81,7 @@ def linear_regression():
         if save is True:
             savename = "{}-{}".format(arguments.get('savename'), arguments.get('usersecret'))
 
-        file = request.files['data']
+        file = request.files['trainingData']
         regression = Model(LinearRegression())
         accuracy = regression.train(file, separator, predicting)
         intercept = regression.model.intercept_
@@ -89,7 +89,7 @@ def linear_regression():
         if save:
             regression.save(savename)
             file_data = open("{}.pickle".format(savename), "rb").read()
-            return json.dumps({
+            response_data = json.dumps({
                 "accuracy": accuracy,
                 "intercept": intercept,
                 "coefficients": coefficients.tolist(),
@@ -97,11 +97,17 @@ def linear_regression():
                 "predicted": predicting
             })
         else:
-            return json.dumps({
+            response_data = json.dumps({
                 "accuracy": accuracy,
                 "intercept": intercept,
                 "coefficients": coefficients.tolist(),
-                "file": None})
+                "file": None,
+                "predicted": predicting})
+        return api.response_class(
+            response=response_data,
+            status=200,
+            mimetype='application/json'
+        )
     except Exception as error:
         return str(error)
 
