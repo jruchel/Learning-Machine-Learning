@@ -140,3 +140,5 @@ def fit_neighbours(x_train, y_train, x_test, y_test):
 if __name__ == "__main__":
     api.run(host='0.0.0.0')
     input("Press enter to exit")
+
+#TODO make all endpoints return api.response and add a function for creating those responses so it doesnt have to by typed each time
