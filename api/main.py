@@ -93,7 +93,8 @@ def linear_regression():
                 "accuracy": accuracy,
                 "intercept": intercept,
                 "coefficients": coefficients.tolist(),
-                "file": str(base64.b64encode(file_data))
+                "file": str(base64.b64encode(file_data)),
+                "predicted": predicting
             })
         else:
             return json.dumps({
