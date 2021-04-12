@@ -7,7 +7,6 @@ import json
 import os
 import pickle
 import base64
-import pandas as pd
 
 api = Flask(__name__)
 cors = CORS(api)
@@ -142,3 +141,4 @@ if __name__ == "__main__":
     input("Press enter to exit")
 
 # TODO make all endpoints return api.response
+# TODO make make endpoints that return pieces of input data return full label names instead of numerical labels

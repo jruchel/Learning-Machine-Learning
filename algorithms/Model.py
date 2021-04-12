@@ -4,6 +4,7 @@ import pandas
 import sklearn
 from pandas import DataFrame
 from sklearn import preprocessing
+from flask import json
 
 
 class Model:
@@ -28,26 +29,40 @@ class Model:
     def encodeLabels(self, data):
         encoder = preprocessing.LabelEncoder()
         columns = []
+        labels = []
         for column in data.columns:
-            columns.append(encoder.fit_transform(data[column]))
+            column_data = encoder.fit_transform(data[column])
 
-        return DataFrame(self.columnsToRowsList(columns), columns=data.columns)
+            name_mapping = dict(zip(encoder.transform(encoder.classes_), encoder.classes_))
+            columns.append(column_data)
+            labels.append(name_mapping)
+
+        return DataFrame(self.columnsToRowsList(columns), columns=data.columns), labels
 
     def predict(self, predict_data, separator, predicting):
         predict_data = pandas.read_csv(predict_data, sep=separator)
-        predict_data = self.encodeLabels(predict_data)
+        predict_data, labels = self.encodeLabels(predict_data)
         predict_data = predict_data.drop([predicting], 1)
         predictions = self.model.predict(predict_data)
         results = []
-
+        predict_data_dict = predict_data.to_dict()
+        for x in range(len(list(predict_data_dict))):
+            current_labels = labels[x]
+            dict_key = list(predict_data_dict)[x]
+            for y in range(len(predict_data_dict[dict_key])):
+                predict_data_dict[dict_key][y] = current_labels[predict_data_dict[dict_key][y]]
         for x in range(len(predictions)):
-            results.append((predictions[x], predict_data.iloc[x].to_dict()))
+            data = {}
+            key_list = list(predict_data_dict)
+            for y in range(len(key_list)):
+                data[key_list[y]] = str(predict_data_dict[key_list[y]][x])
+            results.append((predictions[x], data))
         return results
 
     def train(self, file, separator, predicting_attribute):
         data = pandas.read_csv(file, sep=separator)
 
-        data = self.encodeLabels(data)
+        data, labels = self.encodeLabels(data)
 
         x = numpy.array(data.drop([predicting_attribute], 1))
         y = numpy.array(data[predicting_attribute])
