@@ -52,9 +52,11 @@ class Model:
 
     def predict(self, predict_data, separator, predicting):
         predict_data = pandas.read_csv(predict_data, sep=separator)
+        columns = predict_data.columns
         predict_data, labels = self.encodeLabels(predict_data)
         predict_data = predict_data.drop([predicting], 1)
         predictions = self.model.predict(predict_data)
+        labels = self.remove_column(labels, self.find_predicting_column_index(predicting, columns))
         results = []
         predict_data_dict = predict_data.to_dict()
         for x in range(len(list(predict_data_dict))):
@@ -69,6 +71,19 @@ class Model:
                 data[key_list[y]] = str(predict_data_dict[key_list[y]][x])
             results.append(PredictionResult(predictions[x], data).to_dict())
         return results
+
+    def remove_column(self, data, index):
+        result = []
+        for x in range(len(data)):
+            if x != index:
+                result.append(data[x])
+        return result
+
+    def find_predicting_column_index(self, predicting, data):
+        for x in range(len(data)):
+            if data[x] == predicting:
+                return x
+        return -1
 
     def train(self, file, separator, predicting_attribute):
         data = pandas.read_csv(file, sep=separator)
