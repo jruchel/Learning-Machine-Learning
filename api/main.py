@@ -1,4 +1,4 @@
-from flask import Flask, json, request
+from flask import Flask, json, request, jsonify
 from flask_cors import CORS, cross_origin
 from sklearn.linear_model import LinearRegression
 from algorithms.Model import Model
@@ -36,9 +36,10 @@ def predict_linear_regression():
         model_file.write(model_file_bytes)
         model_file.close()
         model = Model(pickle.load(open("model.pickle", "rb")))
-        return json.dumps(model.predict(data, separator, predicting))
+        response_data = {"predictions": model.predict(data, separator, predicting)}
+        return create_response(response_data)
     except Exception as error:
-        return str(error)
+        return create_response(str(error))
 
 
 @api.route('/algorithms', methods=['GET'])

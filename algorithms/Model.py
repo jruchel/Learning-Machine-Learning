@@ -4,7 +4,18 @@ import pandas
 import sklearn
 from pandas import DataFrame
 from sklearn import preprocessing
-from flask import json
+
+
+class PredictionResult:
+    def __init__(self, prediction, data):
+        self.prediction = prediction
+        self.data = data
+
+    def to_dict(self):
+        return {
+            "prediction": self.prediction,
+            "data": self.data
+        }
 
 
 class Model:
@@ -56,7 +67,7 @@ class Model:
             key_list = list(predict_data_dict)
             for y in range(len(key_list)):
                 data[key_list[y]] = str(predict_data_dict[key_list[y]][x])
-            results.append((predictions[x], data))
+            results.append(PredictionResult(predictions[x], data).to_dict())
         return results
 
     def train(self, file, separator, predicting_attribute):
