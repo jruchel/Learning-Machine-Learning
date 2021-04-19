@@ -1,12 +1,14 @@
-from flask import Flask, json, request, jsonify
-from flask_cors import CORS, cross_origin
-from sklearn.linear_model import LinearRegression
-from algorithms.Model import Model
-from sklearn.neighbors import KNeighborsClassifier
+import base64
 import json
 import os
 import pickle
-import base64
+
+from flask import Flask, json, request
+from flask_cors import CORS, cross_origin
+from sklearn.linear_model import LinearRegression
+from sklearn.neighbors import KNeighborsClassifier
+
+from algorithms.Model import Model
 
 api = Flask(__name__)
 cors = CORS(api)

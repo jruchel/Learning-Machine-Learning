@@ -42,11 +42,15 @@ class Model:
         columns = []
         labels = []
         for column in data.columns:
-            column_data = encoder.fit_transform(data[column])
-
-            name_mapping = dict(zip(encoder.transform(encoder.classes_), encoder.classes_))
-            columns.append(column_data)
-            labels.append(name_mapping)
+            try:
+                float(data[column][0])
+                columns.append(data[column])
+                labels.append(None)
+            except:
+                column_data = encoder.fit_transform(data[column])
+                name_mapping = dict(zip(encoder.transform(encoder.classes_), encoder.classes_))
+                columns.append(column_data)
+                labels.append(name_mapping)
 
         return DataFrame(self.columnsToRowsList(columns), columns=data.columns), labels
 
@@ -60,6 +64,7 @@ class Model:
         results = []
         predict_data_dict = predict_data.to_dict()
         for x in range(len(list(predict_data_dict))):
+            if labels[x] is None: break
             current_labels = labels[x]
             dict_key = list(predict_data_dict)[x]
             for y in range(len(predict_data_dict[dict_key])):
