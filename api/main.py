@@ -48,7 +48,7 @@ def predict_linear_regression():
 @cross_origin()
 def algorithms():
     algos = ['linear-regression', 'k-nearest-neighbours']
-    return create_response(algos)
+    return create_response(algos, 200)
 
 
 @api.route('/algorithms/k-nearest-neighbours', methods=['POST'])
