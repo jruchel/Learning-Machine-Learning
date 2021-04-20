@@ -42,11 +42,11 @@ class Model:
         columns = []
         labels = []
         for column in data.columns:
-            try:
+            if self.is_all_numerical(column):
                 float(data[column][0])
                 columns.append(data[column])
                 labels.append(None)
-            except:
+            else:
                 column_data = encoder.fit_transform(data[column])
                 name_mapping = dict(zip(encoder.transform(encoder.classes_), encoder.classes_))
                 columns.append(column_data)
@@ -74,7 +74,7 @@ class Model:
             key_list = list(predict_data_dict)
             for y in range(len(key_list)):
                 data[key_list[y]] = str(predict_data_dict[key_list[y]][x])
-            results.append(PredictionResult(predictions[x], data).to_dict())
+            results.append(PredictionResult(predictions[x].item(), data).to_dict())
         return results
 
     def remove_column(self, data, index):
@@ -121,3 +121,11 @@ class Model:
 
     def get_model(self):
         return self.model
+
+    def is_all_numerical(self, column):
+        try:
+            for x in range(len(column)):
+                float(column[x])
+            return True
+        except:
+            return False

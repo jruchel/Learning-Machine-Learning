@@ -24,7 +24,7 @@ def cleanup(response):
     return response
 
 
-@api.route('/algorithms/linear-regression/predict', methods=['POST'])
+@api.route('/algorithms/predict', methods=['POST'])
 @cross_origin()
 def predict_linear_regression():
     try:
@@ -39,9 +39,9 @@ def predict_linear_regression():
         model_file.close()
         model = Model(pickle.load(open("model.pickle", "rb")))
         response_data = {"predictions": model.predict(data, separator, predicting)}
-        return create_response(response_data)
+        return create_response(response_data, 200)
     except Exception as error:
-        return create_response(str(error))
+        return create_response(str(error), 409)
 
 
 @api.route('/algorithms', methods=['GET'])
@@ -58,13 +58,37 @@ def k_nearest_neighbours():
         arguments = request.args
         separator = arguments.get('separator')
         predicting = arguments.get('predicting')
-        file = request.files['data']
-        neighbours = arguments.get('neighbours')
-        knn = Model(KNeighborsClassifier(n_neighbors=int(neighbours)))
-        accuracy = knn.train(file, separator, predicting)
-        return json.dumps({"accuracy": accuracy})
+        neighbours = int(arguments.get('neighbours'))
+        save = ''
+        if arguments.get('save') == 'true':
+            save = True
+        else:
+            save = False
+        savename = ''
+        if save is True:
+            savename = "{}-{}".format(arguments.get('savename'), arguments.get('usersecret'))
+
+        file = request.files['trainingData']
+        model = Model(KNeighborsClassifier(n_neighbors=neighbours))
+        accuracy = model.train(file, separator, predicting)
+        if save:
+            model.save(savename)
+            file_data = open("{}.pickle".format(savename), "rb").read()
+            response_data = {
+                "accuracy": accuracy,
+                "neighbours": neighbours,
+                "file": str(base64.b64encode(file_data)),
+                "predicted": predicting
+            }
+        else:
+            response_data = {
+                "accuracy": accuracy,
+                "neighbours": neighbours,
+                "file": "",
+                "predicted": predicting}
+        return create_response(response_data, 200)
     except Exception as error:
-        return str(error)
+        return create_response(str(error), 409)
 
 
 @api.route('/algorithms/linear-regression', methods=['POST'])
@@ -103,11 +127,11 @@ def linear_regression():
                 "accuracy": accuracy,
                 "intercept": intercept,
                 "coefficients": coefficients.tolist(),
-                "file": None,
+                "file": "",
                 "predicted": predicting}
-        return create_response(response_data)
+        return create_response(response_data, 200)
     except Exception as error:
-        return str(error)
+        return create_response(str(error), 409)
 
 
 @api.route('/read', methods=['POST'])
@@ -122,8 +146,8 @@ def save_to_database():
     return ""
 
 
-def create_response(data):
-    return api.response_class(response=json.dumps(data), status=200, mimetype='application/json')
+def create_response(data, status_code):
+    return api.response_class(response=json.dumps(data), status=status_code, mimetype='application/json')
 
 
 def fit_neighbours(x_train, y_train, x_test, y_test):
