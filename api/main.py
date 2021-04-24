@@ -24,9 +24,10 @@ def cleanup(response):
     return response
 
 
+@api.route('/algorithms/linear-regression/predict', methods=['POST'])
 @api.route('/algorithms/predict', methods=['POST'])
 @cross_origin()
-def predict_linear_regression():
+def predict_with_model():
     try:
         model_file_bytes = request.form['modelfile']
         model_file_bytes = model_file_bytes.replace("\\\\", "\\")
@@ -47,45 +48,23 @@ def predict_linear_regression():
 @api.route('/algorithms', methods=['GET'])
 @cross_origin()
 def algorithms():
-    algos = ['linear-regression', 'k-nearest-neighbours']
+    algos = ['linear-regression', 'k-nearest-neighbors']
     return create_response(algos, 200)
 
 
-@api.route('/algorithms/k-nearest-neighbours', methods=['POST'])
+@api.route('/algorithms/k-nearest-neighbors', methods=['POST'])
 @cross_origin()
 def k_nearest_neighbours():
     try:
         arguments = request.args
         separator = arguments.get('separator')
         predicting = arguments.get('predicting')
-        neighbours = int(arguments.get('neighbours'))
-        save = ''
-        if arguments.get('save') == 'true':
-            save = True
-        else:
-            save = False
-        savename = ''
-        if save is True:
-            savename = "{}-{}".format(arguments.get('savename'), arguments.get('usersecret'))
-
-        file = request.files['trainingData']
-        model = Model(KNeighborsClassifier(n_neighbors=neighbours))
-        accuracy = model.train(file, separator, predicting)
-        if save:
-            model.save(savename)
-            file_data = open("{}.pickle".format(savename), "rb").read()
-            response_data = {
-                "accuracy": accuracy,
-                "neighbours": neighbours,
-                "file": str(base64.b64encode(file_data)),
-                "predicted": predicting
-            }
-        else:
-            response_data = {
-                "accuracy": accuracy,
-                "neighbours": neighbours,
-                "file": "",
-                "predicted": predicting}
+        neighbors = int(arguments.get('neighbors'))
+        data = request.files['data']
+        model = Model(KNeighborsClassifier(n_neighbors=neighbors))
+        model.train(data, separator, predicting)
+        data.seek(0)
+        response_data = {"predictions": model.predict(data, separator, predicting)}
         return create_response(response_data, 200)
     except Exception as error:
         return create_response(str(error), 409)
