@@ -3,12 +3,11 @@ import json
 import os
 from flask import Flask, json, request
 from flask_cors import CORS, cross_origin
-from sklearn.linear_model import LinearRegression
 from sklearn.neighbors import KNeighborsClassifier
 
-from api.PredictionsService import get_predictions_as_json
+from api.PredictionsService import get_predictions_as_json_with_modelfile, get_knn_predictions_as_json
 
-from algorithms.Model import Model
+from api.TrainingService import train_linear_regression
 
 api = Flask(__name__)
 cors = CORS(api)
@@ -32,7 +31,7 @@ def predict_with_model():
         data = request.files['data']
         separator = request.args['separator']
         predicting = request.args['predicting']
-        response_data = get_predictions_as_json(modelfile, data, separator, predicting)
+        response_data = get_predictions_as_json_with_modelfile(modelfile, data, separator, predicting)
         return create_response(response_data, 200)
     except Exception as error:
         return create_response(str(error), 409)
@@ -54,11 +53,7 @@ def k_nearest_neighbours():
         predicting = arguments.get('predicting')
         neighbors = int(arguments.get('neighbors'))
         data = request.files['data']
-        model = Model(KNeighborsClassifier(n_neighbors=neighbors))
-        model.train(data, separator, predicting)
-        data.seek(0)
-        response_data = {"predictions": model.predict(data, separator, predicting)}
-        return create_response(response_data, 200)
+        return create_response(get_knn_predictions_as_json(separator, predicting, neighbors, data), 200)
     except Exception as error:
         return create_response(str(error), 409)
 
@@ -67,39 +62,13 @@ def k_nearest_neighbours():
 @cross_origin()
 def linear_regression():
     try:
-        arguments = request.args
-        separator = arguments.get('separator')
-        predicting = arguments.get('predicting')
-        if arguments.get('save') == 'true':
-            save = True
-        else:
-            save = False
-        savename = ''
-        if save is True:
-            savename = "{}-{}".format(arguments.get('savename'), arguments.get('usersecret'))
-
-        file = request.files['data']
-        regression = Model(LinearRegression())
-        accuracy = regression.train(file, separator, predicting)
-        intercept = regression.model.intercept_
-        coefficients = regression.model.coef_
-        if save:
-            regression.save(savename)
-            file_data = open("{}.pickle".format(savename), "rb").read()
-            response_data = {
-                "accuracy": accuracy,
-                "intercept": intercept,
-                "coefficients": coefficients.tolist(),
-                "file": str(base64.b64encode(file_data)),
-                "predicted": predicting
-            }
-        else:
-            response_data = {
-                "accuracy": accuracy,
-                "intercept": intercept,
-                "coefficients": coefficients.tolist(),
-                "file": "",
-                "predicted": predicting}
+        separator = request.args.get('separator')
+        predicting = request.args.get('predicting')
+        save = bool(request.args.get('save'))
+        savename = request.args.get('savename')
+        usersecret = request.args.get('usersecret')
+        data = request.files['data']
+        response_data = train_linear_regression(separator, predicting, save, savename, usersecret, data)
         return create_response(response_data, 200)
     except Exception as error:
         return create_response(str(error), 409)
