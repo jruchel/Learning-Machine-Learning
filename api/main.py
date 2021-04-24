@@ -1,12 +1,12 @@
 import base64
 import json
 import os
-import pickle
-
 from flask import Flask, json, request
 from flask_cors import CORS, cross_origin
 from sklearn.linear_model import LinearRegression
 from sklearn.neighbors import KNeighborsClassifier
+
+from api.PredictionsService import get_predictions_as_json
 
 from algorithms.Model import Model
 
@@ -24,22 +24,15 @@ def cleanup(response):
     return response
 
 
-@api.route('/algorithms/linear-regression/predict', methods=['POST'])
 @api.route('/algorithms/predict', methods=['POST'])
 @cross_origin()
 def predict_with_model():
     try:
-        model_file_bytes = request.form['modelfile']
-        model_file_bytes = model_file_bytes.replace("\\\\", "\\")
-        model_file_bytes = base64.b64decode(model_file_bytes + '===')
+        modelfile = request.form['modelfile']
         data = request.files['data']
         separator = request.args['separator']
         predicting = request.args['predicting']
-        model_file = open("model.pickle", "wb")
-        model_file.write(model_file_bytes)
-        model_file.close()
-        model = Model(pickle.load(open("model.pickle", "rb")))
-        response_data = {"predictions": model.predict(data, separator, predicting)}
+        response_data = get_predictions_as_json(modelfile, data, separator, predicting)
         return create_response(response_data, 200)
     except Exception as error:
         return create_response(str(error), 409)
@@ -77,7 +70,6 @@ def linear_regression():
         arguments = request.args
         separator = arguments.get('separator')
         predicting = arguments.get('predicting')
-        save = ''
         if arguments.get('save') == 'true':
             save = True
         else:
@@ -86,7 +78,7 @@ def linear_regression():
         if save is True:
             savename = "{}-{}".format(arguments.get('savename'), arguments.get('usersecret'))
 
-        file = request.files['trainingData']
+        file = request.files['data']
         regression = Model(LinearRegression())
         accuracy = regression.train(file, separator, predicting)
         intercept = regression.model.intercept_
@@ -111,18 +103,6 @@ def linear_regression():
         return create_response(response_data, 200)
     except Exception as error:
         return create_response(str(error), 409)
-
-
-@api.route('/read', methods=['POST'])
-@cross_origin()
-def read_from_database():
-    return ""
-
-
-@api.route('/save', methods=['POST'])
-@cross_origin()
-def save_to_database():
-    return ""
 
 
 def create_response(data, status_code):
