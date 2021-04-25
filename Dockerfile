@@ -1,13 +1,10 @@
-FROM  continuumio/anaconda:latest
+FROM python:3.7-alpine
+WORKDIR /code
+ENV FLASK_APP=app.py
+ENV FLASK_RUN_HOST=0.0.0.0
+RUN apk add --no-cache gcc musl-dev linux-headers
+COPY requirements.txt requirements.txt
+RUN pip install -r requirements.txt
 EXPOSE 5000
-
-ENV APP_HOME /app
-WORKDIR $APP_HOME
-COPY . $APP_HOME
-
-#---------------- Prepare the envirennment
-RUN conda update --name base conda &&\
-    conda env create --file environment.yaml
-SHELL ["conda", "run", "--name", "app", "/bin/bash", "-c"]
-
-ENTRYPOINT ["conda", "run", "--name", "app", "python", "main.py"]
+COPY . .
+CMD ["flask", "run"]

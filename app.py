@@ -1,4 +1,3 @@
-import base64
 import json
 import os
 from flask import Flask, json, request
@@ -95,5 +94,4 @@ if __name__ == "__main__":
     api.run(host='0.0.0.0')
     input("Press enter to exit")
 
-# TODO make all endpoints return api.response
 # TODO make make endpoints that return pieces of input data return full label names instead of numerical labels
